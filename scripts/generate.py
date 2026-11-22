@@ -84,8 +84,13 @@ def parse_ota(path, filename, url, expected_size):
     timestamp = int(metadata["post-timestamp"])
     if timestamp <= 0:
         raise ValueError("invalid post-timestamp")
-    if datetime.fromtimestamp(timestamp, timezone.utc).date() != datetime.strptime(name_date, "%Y%m%d").date():
-        raise ValueError("filename date does not match OTA build timestamp (UTC)")
+    build_date = datetime.fromtimestamp(timestamp, timezone.utc).date()
+    if build_date != datetime.strptime(name_date, "%Y%m%d").date():
+        raise ValueError(
+            f"{filename}: filename says {name_date}, but the package was built on "
+            f"{build_date:%Y%m%d} (post-timestamp {timestamp} = {build_date} UTC). "
+            f"The build probably reused a stale buildinfo.prop."
+        )
 
     digest = hashlib.sha256()
     with path.open("rb") as stream:

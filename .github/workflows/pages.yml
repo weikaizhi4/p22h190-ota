@@ -29,8 +29,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 scripts/generate.py --repository "$GITHUB_REPOSITORY" --output _site
-      - uses: actions/upload-pages-artifact@v3
+      - name: Verify generated site
+        run: |
+          set -eu
+          echo "--- generated files ---"
+          find _site -type f | sort
+          test -s _site/index.html
+          test -s _site/style.css
+          test -s "_site/updates/P22H190/UNOFFICIAL.json"
+          test -s "_site/updates/P22H190/UNOFFICIAL-gapps.json"
+          echo "--- vanilla feed ---"
+          cat "_site/updates/P22H190/UNOFFICIAL.json"
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
